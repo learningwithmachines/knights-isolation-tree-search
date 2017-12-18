@@ -11,24 +11,15 @@ class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
-def EvalBoard(game, player):
+def custom_score(game, player):
     '''
 
     :param game: object, game, of Isolation.Board
     :param player: object, player, for Isolation.Board._player_1
     :return: int, the score for the board
     '''
-    if game.is_loser(player):
-        return float("-inf")
-
-    if game.is_winner(player):
-        return float("inf")
-
-    score = len(game.get_legal_moves(player)) - len(game.get_legal_moves(game.get_opponent(player)))
-    return score
-
-def custom_score(game, player):
-    """Calculate the heuristic value of a game state from the point of view
+    """
+    Calculate the heuristic value of a game state from the point of view
     of the given player.
 
     This should be the best heuristic function for your project submission.
@@ -51,12 +42,27 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    score = len(game.get_legal_moves(player)) - len(game.get_legal_moves(game.get_opponent(player)))
+    return float(score)
 
 def custom_score_2(game, player):
-    """Calculate the heuristic value of a game state from the point of view
+    '''
+
+    :param game: object, game, of Isolation.Board
+    :param player: object, player, for Isolation.Board._player_1
+    :return: int, the score for the board
+    '''
+    """
+    Calculate the heuristic value of a game state from the point of view
     of the given player.
+
+    This should be the best heuristic function for your project submission.
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
@@ -76,12 +82,27 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    score = len(game.get_legal_moves(player)) - len(game.get_legal_moves(game.get_opponent(player)))
+    return float(score)
 
 def custom_score_3(game, player):
-    """Calculate the heuristic value of a game state from the point of view
+    '''
+
+    :param game: object, game, of Isolation.Board
+    :param player: object, player, for Isolation.Board._player_1
+    :return: int, the score for the board
+    '''
+    """
+    Calculate the heuristic value of a game state from the point of view
     of the given player.
+
+    This should be the best heuristic function for your project submission.
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
@@ -101,8 +122,14 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    score = len(game.get_legal_moves(player)) - len(game.get_legal_moves(game.get_opponent(player)))
+    return float(score)
 
 class IsolationPlayer:
     """Base class for minimax and alphabeta agents -- this class is never
@@ -138,7 +165,7 @@ class MinimaxPlayer(IsolationPlayer):
     minimax to return a good move before the search time limit expires.
     """
 
-    def __init__(self,search_depth=3, score_fn=EvalBoard, timeout=15. ):
+    def __init__(self, search_depth=3, score_fn=custom_score, timeout=15.):
         '''
 
         :param search_depth: int, depth limit for search agent.
@@ -146,7 +173,7 @@ class MinimaxPlayer(IsolationPlayer):
         :param timeout:  float, 15 millisecs for default, too less and MiniMax Search
                             will time-out.
         '''
-        super(MinimaxPlayer, self).__init__(search_depth=3, score_fn=EvalBoard, timeout=10. )
+        super(MinimaxPlayer, self).__init__(search_depth=3, score_fn=custom_score, timeout=10.)
         self.absmin = float("-inf")
         self.absmax = float("inf")
 
@@ -157,7 +184,6 @@ class MinimaxPlayer(IsolationPlayer):
         :return: BOOL
         '''
         return game.active_player == self
-
 
     def get_move(self, game, time_left):
         """Search for the best move from the available legal moves and return a
@@ -219,7 +245,7 @@ class MinimaxPlayer(IsolationPlayer):
         if not moves:
             return bestmove, self.score(game, self)
         #Parity and Vars
-        optimizer, value, bestmove = None, None, (-1, -1)
+        optimizer, value = None, None
         if self.activeplayer(game):
             optimizer, value = max, self.absmin
         else:
@@ -290,14 +316,14 @@ class AlphaBetaPlayer(IsolationPlayer):
     '''Alpha-Beta Using Sorted Nodes
     '''
 
-    def __init__(self,search_depth=3, score_fn=EvalBoard, timeout=15. ):
+    def __init__(self, search_depth=3, score_fn=custom_score, timeout=15.):
         '''
 
         :param search_depth: int, depth limit for search agent.
         :param score_fn: function, name of the default scoring function.
         :param timeout:  float, 15 millisecs for default, too less and AB will time-out.
         '''
-        super(AlphaBetaPlayer, self).__init__(search_depth=3, score_fn=EvalBoard, timeout=10. )
+        super(AlphaBetaPlayer, self).__init__(search_depth=3, score_fn=custom_score, timeout=10.)
         self.absmin = float("-inf")
         self.absmax = float("inf")
 
@@ -331,10 +357,10 @@ class AlphaBetaPlayer(IsolationPlayer):
                     sortedNodes.append((boardTemp, moves_,self.score(game, self)))
         if self.activeplayer(game):
             #DESCENDING FOR MAXIMIZING PLAYER
-            sortedNodes = sorted(sortedNodes, key=lambda node: node[1], reverse=True)
+            sortedNodes = sorted(sortedNodes, key=lambda node: node[2], reverse=True)
         else:
             #ASCENDING FOR MINIMIZNG PLAYER
-            sortedNodes = sorted(sortedNodes, key=lambda node: node[1], reverse=False)
+            sortedNodes = sorted(sortedNodes, key=lambda node: node[2], reverse=False)
         sortedNodes = [node[0] for node in sortedNodes]
         return sortedNodes
 
@@ -385,7 +411,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            for x in range(1, 100):
+            for x in range(3, 100):
                 bestmove = self.alphabeta(game, x)
                 #print("Search depth:",x, "Moves Played:",game.move_count, "Best:", best_move, EvalBoard(game, self), "\n")
 
