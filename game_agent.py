@@ -173,7 +173,7 @@ class MinimaxPlayer(IsolationPlayer):
         :param timeout:  float, 15 millisecs for default, too less and MiniMax Search
                             will time-out.
         '''
-        super(MinimaxPlayer, self).__init__(search_depth=3, score_fn=custom_score, timeout=10.)
+        super(MinimaxPlayer, self).__init__(search_depth=3, score_fn=custom_score, timeout=15.)
         self.absmin = float("-inf")
         self.absmax = float("inf")
 
@@ -241,18 +241,20 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
         #Escape
         bestmove = (-1,-1)
+        #check depth before moves.
+        if depth == 0:
+            return (game.get_player_location(self), self.score(game, self))
+        #check moves
         moves = game.get_legal_moves()
         if not moves:
             return bestmove, self.score(game, self)
         #Parity and Vars
-        optimizer, value = None, None
+        #optimizer, value = None, None
         if self.activeplayer(game):
             optimizer, value = max, self.absmin
         else:
             optimizer, value = min, self.absmax
         #depth-limit checking
-        if depth == 0:
-            return (game.get_player_location(self), self.score(game, self))
         #recursion and search logic
         for move_ in game.get_legal_moves():
             nextgame = game.forecast_move(move_)
@@ -323,7 +325,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         :param score_fn: function, name of the default scoring function.
         :param timeout:  float, 15 millisecs for default, too less and AB will time-out.
         '''
-        super(AlphaBetaPlayer, self).__init__(search_depth=3, score_fn=custom_score, timeout=10.)
+        super(AlphaBetaPlayer, self).__init__(search_depth=3, score_fn=custom_score, timeout=15.)
         self.absmin = float("-inf")
         self.absmax = float("inf")
 
@@ -336,20 +338,22 @@ class AlphaBetaPlayer(IsolationPlayer):
         #PARITY
         return game.active_player == self
 
-    def isTerminal(self, game):
+    def isTerminal(self, game, depth):
         '''
 
         :param game: object, game, of Isolation.Board
         :return: BOOL, yes or no if the game is in end state
         '''
-        if len(game.get_legal_moves(self)) <= 1:
+        if depth == 0:
             return True
-        else:
-            return False
+        for moves_ in game.get_legal_moves():
+            return True
 
-    def GetSortedNodes(self, game, player):
+        return False
+
+    def GetSortedNodes(self, game):
         sortedNodes = []
-        legals = game.get_legal_moves(player)
+        legals = game.get_legal_moves(self)
         for moves_ in legals:
                     #COPY
                     boardTemp = game.forecast_move(moves_)
@@ -400,12 +404,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         # in case the search fails due to timeout
         #DEFAULT
         bestmove = (-1, -1)
-        #ESCAPE
-        nmoves = game.get_legal_moves(self)
-        if len(nmoves) >= 1:
-            bestmove = nmoves[0]
-        else:
-            return bestmove
+
 
         #MOVE SEARCH
         try:
@@ -462,24 +461,17 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
         #DEFAULTS
         bestmove = (-1, -1)
+        #DEPTH-LIMIT and  #ESCAPE
+        if self.isTerminal(game, depth):
+            return (game.get_player_location(self), self.score(game, self))
         #PARITY
         playercheck = self.activeplayer(game)
         if playercheck:
-            optimizer, value, player = max, self.absmin, game.active_player
+            optimizer, value = max, self.absmin
         else:
-            optimizer, value, player = min, self.absmax, game.active_player
-        #ESCAPE
-        if self.isTerminal(game):
-            if game.is_winner(self):
-                return (-1, -1),self.absmax
-            elif game.is_loser(self):
-                return (-1,-1), self.absmin
-        #DEPTH-LIMIT
-        if depth == 0:
-            return (game.get_player_location(player), self.score(game, player))
-
+            optimizer, value = min, self.absmax
         #AB LOGIC and RECURSION
-        SortedNodes = self.GetSortedNodes(game, player)
+        SortedNodes = self.GetSortedNodes(game)
         #sortednodes: boardTemp, moves_, self.score(game, self)
         for games in SortedNodes:
             #debug
@@ -489,7 +481,7 @@ class AlphaBetaPlayer(IsolationPlayer):
                 #debug
                 #print("Playercheck",self.activeplayer(games))
                 value = score
-                bestmove = games.get_player_location(player)
+                bestmove = games.get_player_location()
             #AB BOUNDS
             if playercheck:
                 alpha = optimizer(alpha, value)
