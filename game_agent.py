@@ -247,7 +247,7 @@ class MinimaxPlayer(IsolationPlayer):
         #check moves
         moves = game.get_legal_moves()
         if not moves:
-            return bestmove, self.score(game, self)
+            return game.get_player_location(self), self.score(game, self)
         #Parity and Vars
         #optimizer, value = None, None
         if self.activeplayer(game):
@@ -329,7 +329,39 @@ class AlphaBetaPlayer(IsolationPlayer):
         self.absmin = float("-inf")
         self.absmax = float("inf")
 
-    def activeplayer(self, game):
+    def GetSortedNodes(self, game, isMAX):
+        '''
+
+        :param game: object; instance of Board class.
+        :param isMAX: BOOL; flag for switching between maximizing
+                        and minimizing players
+        :return: [(int, int) * len(game.get_legal_moves())]
+
+        returns a list of moves, in order of scores.
+        sorted by scores from self.score(game, player)
+        Ascending/Descending for MIN/MAX resp.
+
+        Call this instead of game.get_legal_moves()
+        '''
+        sortedNodes = []
+        legals = game.get_legal_moves()
+        if legals:
+            for move_ in legals:
+                nextgame = game.forecast_move(move_)
+                appendscore = [move_, self.score(nextgame, self)]
+                sortedNodes.append(appendscore)
+        else:
+            return []
+
+        if isMAX:
+            sortedNodes = sorted(sortedNodes, key=lambda node: node[1], reverse=True)
+        else:
+            sortedNodes = sorted(sortedNodes, key=lambda node: node[1], reverse=False)
+
+        sortedNodes = [node[0] for node in sortedNodes]
+        return sortedNodes
+
+    def is_activeplayer(self, game):
         '''
 
         :param game: object, game, of Isolation.Board
@@ -337,36 +369,6 @@ class AlphaBetaPlayer(IsolationPlayer):
         '''
         #PARITY
         return game.active_player == self
-
-    def isTerminal(self, game, depth):
-        '''
-
-        :param game: object, game, of Isolation.Board
-        :return: BOOL, yes or no if the game is in end state
-        '''
-        if depth == 0:
-            return True
-        for moves_ in game.get_legal_moves():
-            return True
-
-        return False
-
-    def GetSortedNodes(self, game):
-        sortedNodes = []
-        legals = game.get_legal_moves(self)
-        for moves_ in legals:
-                    #COPY
-                    boardTemp = game.forecast_move(moves_)
-                    #EVAL
-                    sortedNodes.append((boardTemp, moves_,self.score(game, self)))
-        if self.activeplayer(game):
-            #DESCENDING FOR MAXIMIZING PLAYER
-            sortedNodes = sorted(sortedNodes, key=lambda node: node[2], reverse=True)
-        else:
-            #ASCENDING FOR MINIMIZNG PLAYER
-            sortedNodes = sorted(sortedNodes, key=lambda node: node[2], reverse=False)
-        sortedNodes = [node[0] for node in sortedNodes]
-        return sortedNodes
 
     def get_move(self, game, time_left):
         """Search for the best move from the available legal moves and return a
@@ -404,23 +406,21 @@ class AlphaBetaPlayer(IsolationPlayer):
         # in case the search fails due to timeout
         #DEFAULT
         bestmove = (-1, -1)
-
-
         #MOVE SEARCH
-        try:
+        for x in range(1, 50):
+            try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            for x in range(3, 100):
                 bestmove = self.alphabeta(game, x)
-                #print("Search depth:",x, "Moves Played:",game.move_count, "Best:", best_move, EvalBoard(game, self), "\n")
+            #print("Search depth:",x, "Moves Played:",game.move_count, "Best:", best_move, EvalBoard(game, self), "\n")
 
-        except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            except SearchTimeout:
+                break  # Handle any actions required after timeout as needed
 
         # Return the best move from the last completed search iteration
         return bestmove
 
-    def alphabeta_search(self, game, depth, alpha=float("-inf"), beta=float("inf")):
+    def alphabeta_search(self, game, depth, alpha=float("-inf"), beta=float("inf"), ):
         """Implement depth-limited minimax search with alpha-beta pruning as
         described in the lectures.
 
@@ -461,36 +461,37 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
         #DEFAULTS
         bestmove = (-1, -1)
-        #DEPTH-LIMIT and  #ESCAPE
-        if self.isTerminal(game, depth):
-            return (game.get_player_location(self), self.score(game, self))
         #PARITY
-        playercheck = self.activeplayer(game)
-        if playercheck:
-            optimizer, value = max, self.absmin
+        if self.is_activeplayer(game):
+            optimizer, value, maximizer = max, self.absmin, True
         else:
-            optimizer, value = min, self.absmax
-        #AB LOGIC and RECURSION
-        SortedNodes = self.GetSortedNodes(game)
-        #sortednodes: boardTemp, moves_, self.score(game, self)
-        for games in SortedNodes:
+            optimizer, value, maximizer = min, self.absmax, False
+        #DEPTH-LIMIT and  #ESCAPE
+        nextmoves = self.GetSortedNodes(game, maximizer)
+        if depth == 0 :
+            return (-1,-1), self.score(game, self)
+
+        for nextmove_ in nextmoves:
             #debug
             #print("SortedNode Value: ",EvalBoard(games, player), "Player:", type(player), "\n")
-            score = self.alphabeta_search(games, depth -1, alpha, beta)[1]
-            if score == optimizer(value, score ):
+            nextgame = game.forecast_move(nextmove_)
+            gamevalues = self.alphabeta_search(nextgame, depth -1, alpha, beta)
+            if gamevalues[1] == optimizer(value, gamevalues[1] ):
                 #debug
                 #print("Playercheck",self.activeplayer(games))
-                value = score
-                bestmove = games.get_player_location()
-            #AB BOUNDS
-            if playercheck:
-                alpha = optimizer(alpha, value)
-                if beta < alpha:
-                    break
-            else:
-                beta = optimizer(beta, value)
-                if beta < alpha:
-                    break
+                value = gamevalues[1]
+                bestmove =nextmove_
+        #AB BOUNDS
+            if maximizer:
+                if optimizer(value, beta) == value:
+                    return bestmove, value
+                else:
+                    alpha = optimizer(alpha, value)
+            if not maximizer:
+                if optimizer(beta, value) == value:
+                    return bestmove, value
+                else:
+                    beta = optimizer(beta, value)
 
         return bestmove, value
 
