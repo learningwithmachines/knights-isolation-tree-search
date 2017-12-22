@@ -1,6 +1,7 @@
 # wrapping into a class.
 
 from isolation import Board
+from plotter import plotgrid
 
 class movestore():
     '''
@@ -104,7 +105,7 @@ class movestore():
                 # print(openset)
 
         #return the fraction of the board that is accessible to the player
-        return len(openset) / len(checklist)
+        return openset
 
 
 if __name__ == "__main__":
@@ -114,13 +115,16 @@ if __name__ == "__main__":
     vector00 = [(0, 0)]
     MOVX = movestore(vector00)
     gametry = Board('0', '1')
-
+    locinit = gametry.get_blank_spaces()
     #dummy moves
     gametry.apply_move((3, 3))
     gametry.apply_move((4, 4))
     playerloc = gametry.get_player_location('0')
     legals = gametry.get_blank_spaces()
 
+    #printing figures
     for x in range(1, 7):
         #Print Accessibility
-        print(100*MOVX.eval(playerloc, legals, x), end=' %\n')
+        listthing = MOVX.eval(playerloc, legals, x)
+        pplot = plotgrid(playerloc, locinit, legals, listthing, x)
+        pplot.start()
