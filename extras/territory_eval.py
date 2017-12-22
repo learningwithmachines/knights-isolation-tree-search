@@ -107,14 +107,20 @@ class movestore():
         return len(openset) / len(checklist)
 
 
-vector00 = [(0, 0)]
-MOVX = movestore(vector00)
+if __name__ == "__main__":
 
-gametry = Board('0', '1')
-gametry.apply_move((3, 3))
-gametry.apply_move((4, 4))
-playerloc = gametry.get_player_location('0')
-legals = gametry.get_blank_spaces()
+    #testing the class
 
-for x in range(1, 7):
-    print(MOVX.eval(playerloc, legals, x))
+    vector00 = [(0, 0)]
+    MOVX = movestore(vector00)
+    gametry = Board('0', '1')
+
+    #dummy moves
+    gametry.apply_move((3, 3))
+    gametry.apply_move((4, 4))
+    playerloc = gametry.get_player_location('0')
+    legals = gametry.get_blank_spaces()
+
+    for x in range(1, 7):
+        #Print Accessibility
+        print(100*MOVX.eval(playerloc, legals, x), end=' %\n')
