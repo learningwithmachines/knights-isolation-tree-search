@@ -37,17 +37,19 @@ class plotgrid:
         made = [[enumdict[(x, y)] for y in range(maxc)] for x in range(maxr)]
         return made
 
-    def start(self):
+    def start(self, numgraphs, plotnum):
+        numctrl = math.ceil(math.sqrt(numgraphs))
+
         self.enumdict = self.enum()
         matrix = self.makematrix(self.enumdict)
-        self.plotter(matrix)
+        self.plotter(matrix, numctrl, plotnum)
 
-    def plotter(self, matrix_0):
+    def plotter(self, matrix_0, size, plotnum):
 
         matrix = np.matrix(matrix_0)
         fig = plt.figure()
         fig.patch.set_facecolor('white')
-        ax = fig.add_subplot(1, 1, 1)
+        ax = fig.add_subplot(size, size, plotnum)
         label = [x for x in range(8)]
         ax.set_aspect('equal')
         ax.set_xticklabels(label)

@@ -71,7 +71,7 @@ class movestore():
         :return: {:}, dictionary of alebgraic offsets and depths
         '''
         "take current location as 'moveloc' and try adding all move vectors"
-        "stores results into a dictionary of openmoves and depthlevels"
+        "stores results into a dictionary of openmoves at corresp. depthlevels"
         tempargs = moveloc
         limit = max = self.depthcheck
         vectordict = {}
@@ -86,8 +86,8 @@ class movestore():
         for keys in self.vectorlist:
             print(keys, str(len(self.vectorlist[keys])) + str(" positions"), end='\n')
 
-    def checkvalues(self, depth):
-        #return at correct depth
+    def repr_val(self, depth):
+        #return entry at correct depth
         return self.vectorlist[depth]
 
     def regrid(self, x, y):
@@ -96,7 +96,7 @@ class movestore():
 
     def eval(self, target, checklist, depth):
         openset = set()
-        for items in self.checkvalues(depth):
+        for items in self.repr_val(depth):
             # get pos to add items in vectorlist at chosen depth
             temp = self.regrid(target, items)
             # print(temp)
@@ -121,10 +121,10 @@ if __name__ == "__main__":
     gametry.apply_move((4, 4))
     playerloc = gametry.get_player_location('0')
     legals = gametry.get_blank_spaces()
-
+    maxdepth = 6
     #printing figures
-    for x in range(1, 7):
+    for xstep in range(1, maxdepth + 1):
         #Print Accessibility
-        listthing = MOVX.eval(playerloc, legals, x)
-        pplot = plotgrid(playerloc, locinit, legals, listthing, x)
-        pplot.start()
+        listthing = MOVX.eval(playerloc, legals, xstep)
+        pplot = plotgrid(playerloc, locinit, legals, listthing, xstep)
+        pplot.start(maxdepth, xstep )
