@@ -1,4 +1,4 @@
-# wrapping into a class.
+activ# wrapping into a class.
 
 from isolation import Board
 from plotter import plotgrid

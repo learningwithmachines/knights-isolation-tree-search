@@ -156,7 +156,7 @@ def custom_score_3(game, player):
     ownmoves = game.get_legal_moves(player)
     oppmoves = game.get_legal_moves(game.get_opponent(player))
 
-    #memoized move quality
+    #memoizing move quality
     #prioritizes picking good neighborhoods over the openmoves difference
     movesvalues = {(0, 0): 2, (1, 0): 3, (2, 0): 4, (3, 0): 4, (4, 0): 4,
                    (5, 0): 3, (6, 0): 2, (0, 1): 3, (1, 1): 4, (2, 1): 6,
