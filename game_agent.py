@@ -66,13 +66,10 @@ def custom_score(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    #score 1 : open moves difference
+    #score 1 : open moves difference #greedy version of AB-improved
     own_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
-
     score = len(own_moves) - len(opp_moves)
-
-
     return float(score)
 
 def custom_score_2(game, player):
@@ -170,11 +167,203 @@ def custom_score_3(game, player):
                    (3, 6): 4, (4, 6): 4, (5, 6): 3, (6, 6): 2
                    }
     #normalised move-quality
-    ownmovescore = float(sum([movesvalues[move] for move in ownmoves]) / (len(ownmoves) + 1))
-    oppmovescore = float(sum([movesvalues[move] for move in oppmoves]) / (len(oppmoves) + 1))
+    ownmovescore = float(sum([movesvalues[move] for move in ownmoves]) / 8)
+    oppmovescore = float(sum([movesvalues[move] for move in oppmoves]) / 8)
 
     score = len(ownmoves)*ownmovescore - len(oppmoves)*oppmovescore
+    return float(score)
 
+def custom_score_4(game, player):
+    '''
+
+    :param game: object, instance of Isolation.Board
+    :param player: object, player, for Isolation.Board._player_1
+    :return: int, the score for the board
+    '''
+    """
+    Calculate the heuristic value of a game state from the point of view
+    of the given player.
+
+    This should be the best heuristic function for your project submission.
+
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    blanks = len(game.get_blank_spaces())
+    ownmoves = game.get_legal_moves(player)
+    ownloc = game.get_player_location(player)
+    opploc = game.get_player_location(game.get_opponent(player))
+
+    #memoizing move quality
+    #prioritizes picking good neighborhoods over the openmoves difference
+    movesvalues = {(0, 0): 2, (1, 0): 3, (2, 0): 4, (3, 0): 4, (4, 0): 4,
+                   (5, 0): 3, (6, 0): 2, (0, 1): 3, (1, 1): 4, (2, 1): 6,
+                   (3, 1): 6, (4, 1): 6, (5, 1): 4, (6, 1): 3, (0, 2): 4,
+                   (1, 2): 6, (2, 2): 8, (3, 2): 8, (4, 2): 8, (5, 2): 6,
+                   (6, 2): 4, (0, 3): 4, (1, 3): 6, (2, 3): 8, (3, 3): 8,
+                   (4, 3): 8, (5, 3): 6, (6, 3): 4, (0, 4): 4, (1, 4): 6,
+                   (2, 4): 8, (3, 4): 8, (4, 4): 8, (5, 4): 6, (6, 4): 4,
+                   (0, 5): 3, (1, 5): 4, (2, 5): 6, (3, 5): 6, (4, 5): 6,
+                   (5, 5): 4, (6, 5): 3, (0, 6): 2, (1, 6): 3, (2, 6): 4,
+                   (3, 6): 4, (4, 6): 4, (5, 6): 3, (6, 6): 2
+                   }
+    ownmovescore = float(sum([movesvalues[move] for move in ownmoves]) / 8) #normalised move-quality
+    score_chase = min(18, distance(game, ownloc, opploc))/18 #penalty, Max(~1) while away, min when near
+    endgame_flip = (float(blanks/49)<0.35) * score_chase #True at endgame,
+    score = ownmovescore - endgame_flip #stay close
+    return float(score)
+
+def custom_score_5(game, player):
+    '''
+
+    :param game: object, instance of Isolation.Board
+    :param player: object, player, for Isolation.Board._player_1
+    :return: int, the score for the board
+    '''
+    """
+    Calculate the heuristic value of a game state from the point of view
+    of the given player.
+
+    This should be the best heuristic function for your project submission.
+
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    blanks = len(game.get_blank_spaces())
+    ownmoves = game.get_legal_moves(player)
+    ownloc = game.get_player_location(player)
+    opploc = game.get_player_location(game.get_opponent(player))
+    openmoves = len(ownmoves)
+
+    #memoizing move quality
+    #prioritizes picking good neighborhoods over the openmoves difference
+    movesvalues = {(0, 0): 2, (1, 0): 3, (2, 0): 4, (3, 0): 4, (4, 0): 4,
+                   (5, 0): 3, (6, 0): 2, (0, 1): 3, (1, 1): 4, (2, 1): 6,
+                   (3, 1): 6, (4, 1): 6, (5, 1): 4, (6, 1): 3, (0, 2): 4,
+                   (1, 2): 6, (2, 2): 8, (3, 2): 8, (4, 2): 8, (5, 2): 6,
+                   (6, 2): 4, (0, 3): 4, (1, 3): 6, (2, 3): 8, (3, 3): 8,
+                   (4, 3): 8, (5, 3): 6, (6, 3): 4, (0, 4): 4, (1, 4): 6,
+                   (2, 4): 8, (3, 4): 8, (4, 4): 8, (5, 4): 6, (6, 4): 4,
+                   (0, 5): 3, (1, 5): 4, (2, 5): 6, (3, 5): 6, (4, 5): 6,
+                   (5, 5): 4, (6, 5): 3, (0, 6): 2, (1, 6): 3, (2, 6): 4,
+                   (3, 6): 4, (4, 6): 4, (5, 6): 3, (6, 6): 2
+                   }
+
+    ownmovescore = float(sum([movesvalues[move] for move in ownmoves]) / 8) #normalised move-quality
+    score_chase = min(18, distance(game, ownloc, opploc))/18 #penalty, Max(~1) while away, min when near
+    endgame_flip = (float(blanks/49)<0.35) * score_chase #True at endgame,
+    if openmoves < 2:
+        score = ownmovescore + endgame_flip #away
+    else:
+        score = ownmovescore - endgame_flip
+
+    return float(score)
+
+def custom_score_6(game, player):
+    '''
+
+    :param game: object, instance of Isolation.Board
+    :param player: object, player, for Isolation.Board._player_1
+    :return: int, the score for the board
+    '''
+    """
+    Calculate the heuristic value of a game state from the point of view
+    of the given player.
+
+    This should be the best heuristic function for your project submission.
+
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    ownmoves = game.get_legal_moves(player)
+    ownloc = game.get_player_location(player)
+    opploc = game.get_player_location(game.get_opponent(player))
+    openmoves = len(ownmoves)
+
+    #memoizing move quality
+    #prioritizes picking good neighborhoods over the openmoves difference
+    movesvalues = {(0, 0): 2, (1, 0): 3, (2, 0): 4, (3, 0): 4, (4, 0): 4,
+                   (5, 0): 3, (6, 0): 2, (0, 1): 3, (1, 1): 4, (2, 1): 6,
+                   (3, 1): 6, (4, 1): 6, (5, 1): 4, (6, 1): 3, (0, 2): 4,
+                   (1, 2): 6, (2, 2): 8, (3, 2): 8, (4, 2): 8, (5, 2): 6,
+                   (6, 2): 4, (0, 3): 4, (1, 3): 6, (2, 3): 8, (3, 3): 8,
+                   (4, 3): 8, (5, 3): 6, (6, 3): 4, (0, 4): 4, (1, 4): 6,
+                   (2, 4): 8, (3, 4): 8, (4, 4): 8, (5, 4): 6, (6, 4): 4,
+                   (0, 5): 3, (1, 5): 4, (2, 5): 6, (3, 5): 6, (4, 5): 6,
+                   (5, 5): 4, (6, 5): 3, (0, 6): 2, (1, 6): 3, (2, 6): 4,
+                   (3, 6): 4, (4, 6): 4, (5, 6): 3, (6, 6): 2
+                   }
+
+    ownmovescore = float(sum([movesvalues[move] for move in ownmoves]) / 8)
+    run = distance(game, ownloc, opploc)
+
+    if openmoves < 2:
+        score = ownmovescore + run #away - relaxed
+    else:
+        score = ownmovescore
     return float(score)
 
 class IsolationPlayer:

@@ -23,9 +23,9 @@ from sample_players import (RandomPlayer, open_move_score,
 from game_agent import (MinimaxPlayer, AlphaBetaPlayer, custom_score,
                         custom_score_2, custom_score_3)
 
-NUM_PROCS = 4
+NUM_PROCS = 8
 NUM_MATCHES = 30  # number of matches against each opponent
-TIME_LIMIT = 150  # number of milliseconds before timeout
+TIME_LIMIT = 100  # number of milliseconds before timeout
 
 DESCRIPTION = """
 This script evaluates the performance of the custom_score evaluation
