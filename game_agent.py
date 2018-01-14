@@ -66,7 +66,7 @@ def custom_score(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    #score 1 : open moves difference #greedy version of AB-improved
+    #score 1 : open moves difference #control for AB-improved, not an implemented heurisitic
     own_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
     score = len(own_moves) - len(opp_moves)
